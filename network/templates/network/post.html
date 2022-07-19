@@ -1,0 +1,18 @@
+<div class="container-fluid border border-primary border-2 rounded-sm mb-2">
+    <div class="row m-2">
+        <h4>New post</h4>
+    </div>
+    <form id="post-form" action="{% url 'post' %}" method="post">
+        {% csrf_token %}
+    <div class="row m-2">
+        <textarea autofocus class="form-control" id="post-message" name="post-message" required="required" 
+        maxlength="{{ post_max_length }}" placeholder="Post"></textarea>
+    </div>
+    <div class="row m-2">
+        280 characters left
+    </div>
+    <div class="row m-2" id="chars_remaining">
+        <input type="submit" class="btn btn-primary" value="Post"/>
+    </div>
+</form>
+</div>

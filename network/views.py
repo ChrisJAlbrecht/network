@@ -4,11 +4,19 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User
+from .models import User, Post, Follower, post_max_length
 
 
 def index(request):
-    return render(request, "network/index.html")
+    posts = Post.objects.all().order_by("-created_on")
+    
+    # paginator
+    
+    return render(request, "network/index.html", {
+        "posts": posts,
+        "post_max_length": post_max_length,
+        },
+    )
 
 
 def login_view(request):
@@ -61,3 +69,38 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "network/register.html")
+
+
+def post(request, post_id=None):
+    if request.method == "POST":
+        user = User.objects.get(id=request.user.id)
+        post = Post.objects.create(
+            user=user, post=request.POST["post-message"]
+        )
+        #post.likes.add(user)
+        post.save()
+
+        return HttpResponseRedirect(reverse("index"))
+    
+    
+def profile(request, user_id):
+    user_profile = User.objects.get(id=user_id)
+    
+    followed, _ = Follower.objects.get_or_create(user=user_profile)
+    is_following = request.user in followed.followers.all()
+    
+    numbers_followed = followed.followers.count()
+    number_follows = user_profile.following.count()
+    
+    posts = Post.objects.filter(user=user_profile).order_by("-created_on")
+    
+    # paginator
+    
+    return render(request, "network/profile.html", {
+        "user": user_profile,
+        "following": is_following,
+        "numbers_followed": numbers_followed,
+        "number_follows": number_follows,
+        "posts": posts,
+        },
+    )

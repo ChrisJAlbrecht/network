@@ -15,7 +15,7 @@ class Post(models.Model):
     modified_on = models.DateField(auto_now=True)
     
     def __str__(self):
-        return f"{self.user.username} - {self.message} - {self.likes.count()} likes"
+        return f"{self.user.username} - {self.post} - {self.likes.count()} likes"
 
     @property
     def like_count(self):

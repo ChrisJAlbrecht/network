@@ -3,7 +3,7 @@
         <div class="row m-2">
             <h4><a href="{% url 'profile' post.user.id %}">{{ post.user.username }}</a></h4>
         </div>
-        <div class="row m-2">
+        <div class="row m-2" id="div_edit{{post.id}}">
             {% if post.user.id == request.user.id %}
                 <a href="#" class="text-decoration-none" onClick="edit({{post.id}})">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
@@ -16,6 +16,7 @@
         <div class="row m-2" id="edit{{post.id}}">
             {{ post.post }}
         </div>
+        <div class="row m-2" id="buttons{{post.id}}"></div>
         <div class="row m-2 justify">
             <div class="col-2 justify-content-start">
                 {% if request.user.is_authenticated and request.user.id != post.user.id %}

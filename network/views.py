@@ -82,14 +82,33 @@ def register(request):
 
 def post(request, post_id=None):
     if request.method == "POST":
-        user = User.objects.get(id=request.user.id)
-        post = Post.objects.create(
-            user=user, post=request.POST["post-message"]
-        )
-        #post.likes.add(user)
-        post.save()
+        if not post_id:
+            user = User.objects.get(id=request.user.id)
+            post = Post.objects.create(
+                user=user, post=request.POST["post-message"]
+            )
+            #post.likes.add(user)
+            post.save()
+            
+            return HttpResponseRedirect(reverse("index"))
         
-        return HttpResponseRedirect(reverse("index"))
+        post = Post.objects.get(id=post_id)
+
+        if request.user.id != post.user.id:
+            return HttpResponseRedirect(reverse("index"))
+        
+        data = json.loads(request.body)
+        if len(data.get("post", "")) <= 0:
+            return JsonResponse({"message": "Your post needs at least one character."}, status=406)
+
+        if len(data.get("post")) > post_max_length:
+            return JsonResponse({"message": "Your post can't have more than 280 characters"}, status=406)
+
+        post.post = data.get("post")
+        post.save()
+
+        return JsonResponse({"saved": True}, status=200)
+            
     
 @csrf_exempt
 def profile(request, user_id):
@@ -108,7 +127,12 @@ def profile(request, user_id):
     numbers_followed = followed.followers.count()
     number_follows = user_profile.following.count()
     
-    posts = Post.objects.filter(user=user_profile).order_by("-created_on")
+    posts_list = Post.objects.filter(user=user_profile).order_by("-created_on")
+    
+    paginator = Paginator(posts_list, 10)
+    
+    page_number = request.GET.get("page", 1)
+    posts = paginator.get_page(page_number)
     
     if request.method == "PUT":
         if request.user == user_profile:
@@ -132,6 +156,8 @@ def profile(request, user_id):
         "numbers_followed": numbers_followed,
         "number_follows": number_follows,
         "posts": posts,
+        "current_page": page_number,
+        "page_range": range(posts.paginator.num_pages),
         },
     )
 
